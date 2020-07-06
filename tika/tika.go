@@ -128,6 +128,14 @@ func (c *Client) Parse(ctx context.Context, input io.Reader) (string, error) {
 	return c.callString(ctx, input, "PUT", "/tika")
 }
 
+func (c *Client) ParsePlain(ctx context.Context, input io.Reader) (string, error) {
+	body, err := c.call(ctx, input, "PUT", "/tika", plainHeader)
+	if err != nil {
+		return "", err
+	}
+	return string(body), nil
+}
+
 // ParseRecursive parses the given input and all embedded documents, returning a
 // list of the contents of the input with one element per document. See
 // MetaRecursive for access to all metadata fields. If the error is not nil, the
@@ -150,6 +158,16 @@ func (c *Client) ParseRecursive(ctx context.Context, input io.Reader) ([]string,
 // error. If the error is not nil, the metadata is undefined.
 func (c *Client) Meta(ctx context.Context, input io.Reader) (string, error) {
 	return c.callString(ctx, input, "PUT", "/meta")
+}
+
+// MetaJSON parsers the metadata from the given input, returning the metadata in JSON
+// format and an error. If the error is not nil, the metadata is undefined.
+func (c *Client) MetaJSON(ctx context.Context, input io.Reader) (string, error) {
+	body, err := c.call(ctx, input, "PUT", "/meta", jsonHeader)
+	if err != nil {
+		return "", err
+	}
+	return string(body), nil
 }
 
 // MetaField parses the metadata from the given input and returns the given
@@ -243,6 +261,7 @@ func (c *Client) Version(ctx context.Context) (string, error) {
 }
 
 var jsonHeader = http.Header{"Accept": []string{"application/json"}}
+var plainHeader = http.Header{"Accept": []string{"text/plain"}}
 
 // callUnmarshal is like call, but unmarshals the JSON response into v.
 func (c *Client) callUnmarshal(ctx context.Context, path string, v interface{}) error {
